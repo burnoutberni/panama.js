@@ -1,0 +1,13 @@
+{
+    "latedef" : true,
+    "newcap" : true,
+    "nonew" : true,
+    "quotmark" : "single",
+    "esnext" : true,
+    "browserify" : true,
+    "browser": true,
+    "undef": true,
+    "unused": true,
+    "varstmt": true,
+    "devel": true
+}
