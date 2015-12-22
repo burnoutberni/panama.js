@@ -41,7 +41,18 @@ function broadcastProperty(property, interval=500) {
             webSocket.broadcast([property, value]);
             setTimeout(broadcastProperty, interval, property, interval);
         });
+function throttle(fn, delay) {
+    let lastTime = new Date();
+    return (...args) => {
+        const now = new Date();
+        if (now - lastTime > delay) {
+            console.log('now');
+            fn.apply(this, args);
+            lastTime = now;
+        }
+    };
 }
+ 
 
 function setupClient(client) {
     client.sendJSON = data => client.send(JSON.stringify(data));
@@ -91,11 +102,20 @@ const handleClientEvent = client => data => {
 mpv.connect(config.socketPath).then(() => {
     mpv.onEvent = handleMpvEvent;
 
-    broadcastProperty('percent-pos');
-    broadcastProperty('volume');
-    broadcastProperty('pause');
-    broadcastProperty('playlist', 1000);
+    const broadcastPayload = p => {
+        webSocket.broadcast([p.name, p.data]);
+    };
+    mpv.observe('playlist', p => {
+        p = playlist.list(p.data);
+        webSocket.broadcast(['playlist', p]);
+    });
 
+    mpv.observe('percent-pos', throttle(p => {
+            webSocket.broadcast(['percent-pos', p.data]);
+    }, 1000));
+
+    mpv.observe('volume', broadcastPayload);
+    mpv.observe('pause', broadcastPayload);
 
     webSocket.on('connection', (client) => {
         setupClient(client);

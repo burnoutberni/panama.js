@@ -5,6 +5,8 @@ export default class MPV {
     constructor() {
         this.requestId = 0;
         this.deferredRequests = {};
+        this.propertyObserverId = 0;
+        this.propertyObservers = {};
     }
 
     connect(socketPath) {
@@ -36,6 +38,12 @@ export default class MPV {
         return deferred.promise;
     }
 
+    observe(property, handler) {
+        const id = this.propertyObserverId++;
+        this.propertyObservers[property] = handler;
+        this.command('observe_property', id, property);
+    }
+
     handler(payload) {
         const id = payload.request_id;
         if (this.deferredRequests.hasOwnProperty(id)) {
@@ -47,6 +55,10 @@ export default class MPV {
             else {
                 callback.reject(payload.error);
             }
+        }
+        else if (payload.event == 'property-change' &&
+                 this.propertyObservers.hasOwnProperty(payload.name)) {
+            this.propertyObservers[payload.name](payload);
         }
         else if (typeof this.onEvent !== 'undefined') {
             this.onEvent(payload.event);
