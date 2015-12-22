@@ -1,6 +1,6 @@
 import ws from 'ws';
-import {spawn} from 'child_process';
 import MPV from './mpv';
+import Playlist from './playlist';
 import config from './config';
 
 const webSocket = new ws.Server({port: config.webSocketPort});
@@ -9,6 +9,7 @@ webSocket.broadcast = function(data) {
 };
 
 const mpv = new MPV();
+const playlist = new Playlist(mpv);
 mpv.allowedCommands = [
     'set', 'add', 'cycle', 'multiply',
     'seek', 'revert-seek',
@@ -20,27 +21,6 @@ mpv.allowedCommands = [
     'set_property', 'get_property', 'observe_property'
 ];
 
-function youTubeDl(uri) {
-    return new Promise((resolve, reject) => {
-        let dl = spawn('youtube-dl', ['-e', '-g', uri]),
-            stdout = [],
-            stderr = [];
-        dl.stdout.on('data', data => stdout.push(data.toString('utf-8')));
-        dl.stderr.on('data', data => stderr.push(data.toString('utf-8')));
-        dl.on('close', code => {
-            if (!code) resolve([stdout, stderr]);
-            else reject(stderr);
-        });
-    });
-}
-
-function broadcastProperty(property, interval=500) {
-    // TODO: use observe_property
-    mpv.command('get_property', property)
-        .then(value => {
-            webSocket.broadcast([property, value]);
-            setTimeout(broadcastProperty, interval, property, interval);
-        });
 function throttle(fn, delay) {
     let lastTime = new Date();
     return (...args) => {
@@ -56,20 +36,24 @@ function throttle(fn, delay) {
 
 function setupClient(client) {
     client.sendJSON = data => client.send(JSON.stringify(data));
-    const get_property = property => {
+    const get_property = (property, filter) => {
         mpv.command('get_property', property).then(
-            value => client.sendJSON([property, value]),
+            value => {
+                if (typeof filter !== 'undefined') {
+                    value = filter(value);
+                }
+                client.sendJSON([property, value]);
+            },
             error => client.sendJSON(['error', error])
         );
     };
     get_property('volume');
     get_property('percent-pos');
     get_property('pause');
-    get_property('playlist');
+    get_property('playlist', v => playlist.update(v)); // todo:: call playlist.list here.
 }
 
 function handleMpvEvent(event) {
-
 }
 
 const handleClientEvent = client => data => {
@@ -77,19 +61,7 @@ const handleClientEvent = client => data => {
 
     switch (key) {
     case 'loadfile':
-        youTubeDl(value).then(
-            result => {
-                const [stdout, stderr] = result;
-                console.log('youtube-dl stderr', stderr);
-                const title = stdout[0].trim(),
-                      url = stdout[1].trim();
-                mpv.command('show-text', `added ${title} (${url})`);
-                mpv.command('loadfile', url, 'append', `force-media-title="${title}"`)
-                    .then(v => console.log('v', v), e => console.log('e', e));
-
-
-            },
-            stderr => mpv.command('show-text', stderr.join('\n')));
+        playlist.add(value);
         break;
     default:
         mpv.command('show-text', key + ' ' + value);
@@ -105,10 +77,8 @@ mpv.connect(config.socketPath).then(() => {
     const broadcastPayload = p => {
         webSocket.broadcast([p.name, p.data]);
     };
-    mpv.observe('playlist', p => {
-        p = playlist.list(p.data);
-        webSocket.broadcast(['playlist', p]);
-    });
+    mpv.observe('playlist', p => webSocket.broadcast(
+        ['playlist', playlist.update(p.data)]));
 
     mpv.observe('percent-pos', throttle(p => {
             webSocket.broadcast(['percent-pos', p.data]);

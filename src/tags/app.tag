@@ -4,7 +4,7 @@ import riot from 'riot';
     <error message="Could not connect to server: {this.socket.url}." if={this.socket.readyState != 1}></error>
     <controls volume={this.volume} position={this['percent-pos']}
               pause={this.pause} send={this.send}></controls>
-    <playlist items={playlist}></playlist>
+    <playlist items={playlist} send="{this.send}"></playlist>
     <p>
         powered by <a href="https://git.phaer.org/panama">panama</a>, patches welcome.
     </p>
