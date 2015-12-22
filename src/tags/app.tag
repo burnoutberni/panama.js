@@ -42,15 +42,13 @@ import riot from 'riot';
          flex-wrap: wrap;
      }
      form[name="controls"] > * { margin-bottom: 0.5rem; }
-     button[name="playing"] {
-         width: 10%
+     button[name="playing"], input[name="submit"] {
+         min-width: 3rem;
      }
+     button[name="playing"] { margin-right: 1rem; }
+     input[name="submit"] { margin-left: 1rem; }
      input[name="add"] {
-         width: 75%;
          flex-grow: 2;
-     }
-     input[name="submit"] {
-         width: 10%;
      }
      .volume, .position {
          width: 100%;
