@@ -20,8 +20,8 @@
      }
 
      const changeHandler = property => event => opts.send(property, parseFloat(event.target.value));
-     this.position.onchange = changeHandler('percent-pos');
-     this.volume.onchange = changeHandler('volume');
+     this.position.onchange = this.position.oninput = changeHandler('percent-pos');
+     this.volume.onchange = this.volume.oninput = changeHandler('volume');
      this.playing.onclick = event => opts.send('pause', !opts.pause);
 
      this.on('update', () => {
