@@ -2,6 +2,10 @@
   "name": "panama",
   "version": "0.0.1",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://git.phaer.org/panama"
+  },
   "main": "index.js",
   "scripts": {
     "postinstall": "./build.sh",
@@ -11,6 +15,8 @@
   "author": "phaer <hello@phaer.org>",
   "license": "AGPL",
   "dependencies": {
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.5.2",
+    "browserify": "^13.0.0",
     "q": "^1.4.1",
     "riot": "^2.3.12",
     "ws": "^0.8.0"
