@@ -26,13 +26,11 @@ function throttle(fn, delay) {
     return (...args) => {
         const now = new Date();
         if (now - lastTime > delay) {
-            console.log('now');
             fn.apply(this, args);
             lastTime = now;
         }
     };
 }
- 
 
 function setupClient(client) {
     client.sendJSON = data => client.send(JSON.stringify(data));
@@ -54,6 +52,7 @@ function setupClient(client) {
 }
 
 function handleMpvEvent(event) {
+    console.log('mpv event:', event);
 }
 
 const handleClientEvent = client => data => {

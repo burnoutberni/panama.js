@@ -2,12 +2,12 @@ import {spawn} from 'child_process';
 
 function youTubeDl(uri) {
     return new Promise((resolve, reject) => {
-        let dl = spawn('youtube-dl', ['-e', '-g', uri]),
+        let proc = spawn('youtube-dl', ['-e', '-g', uri]),
             stdout = [],
             stderr = [];
-        dl.stdout.on('data', data => stdout.push(data.toString('utf-8')));
-        dl.stderr.on('data', data => stderr.push(data.toString('utf-8')));
-        dl.on('close', code => {
+        proc.stdout.on('data', data => stdout.push(data.toString('utf-8')));
+        proc.stderr.on('data', data => stderr.push(data.toString('utf-8')));
+        proc.on('close', code => {
             if (!code) resolve([stdout, stderr]);
             else reject(stderr);
         });
