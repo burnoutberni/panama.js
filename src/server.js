@@ -1,4 +1,5 @@
 import ws from 'ws';
+import express from 'express';
 import MPV from './mpv';
 import Playlist from './playlist';
 import config from './config';
@@ -7,9 +8,10 @@ const webSocket = new ws.Server({port: config.webSocketPort});
 webSocket.broadcast = function(data) {
     this.clients.forEach(client => client.send(JSON.stringify(data)));
 };
-
+const http = express();
 const mpv = new MPV();
 const playlist = new Playlist(mpv);
+
 mpv.allowedCommands = [
     'set', 'add', 'cycle', 'multiply',
     'seek', 'revert-seek',
@@ -90,6 +92,35 @@ mpv.connect(config.socketPath).then(() => {
         setupClient(client);
         client.on('message', handleClientEvent(client));
     });
+
+    return webSocket;
+}
+
+function setupHttpServer(http, mpv, playlist) {
+    http.use(express.static('dist'));
+
+    http.get('/volume/:volume', (req, res) => {
+        res.write('volume', req.params.volume, '\n');
+        mpv.command('set_property', 'volume', req.params.volume)
+            .then(v => res.send(v),
+                  e => res.send(e));
+    });
+
+    http.get('/load/:url', (req, res) => {
+        playlist.add(req.params.url).then(
+            v => res.send(v),
+            e => res.send(e)
+        );
+    });
+    return http;
+}
+
+mpv.connect(config.socketPath).then(() => {
+    mpv.onEvent = handleMpvEvent;
+
+    setupWebSocketServer(webSocket, mpv, playlist);
+    setupHttpServer(http, mpv, playlist)
+        .listen(8000, () => console.log('Panama listening on port 8000!'));
 }, (error) => {
     console.log('Could not connect to mpv: ', error);
 });
