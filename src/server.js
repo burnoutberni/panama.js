@@ -72,19 +72,11 @@ const handleClientEvent = client => data => {
     }
 };
 
-mpv.connect(config.socketPath).then(() => {
-    mpv.onEvent = handleMpvEvent;
+function setupWebSocketServer(webSocket, mpv, playlist) {
+    const broadcastPayload = p => webSocket.broadcast([p.name, p.data]);
 
-    const broadcastPayload = p => {
-        webSocket.broadcast([p.name, p.data]);
-    };
-    mpv.observe('playlist', p => webSocket.broadcast(
-        ['playlist', playlist.update(p.data)]));
-
-    mpv.observe('percent-pos', throttle(p => {
-            webSocket.broadcast(['percent-pos', p.data]);
-    }, 1000));
-
+    mpv.observe('percent-pos', throttle(broadcastPayload, 1000));
+    mpv.observe('playlist', broadcastPayload);
     mpv.observe('volume', broadcastPayload);
     mpv.observe('pause', broadcastPayload);
 
