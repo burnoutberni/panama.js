@@ -17,6 +17,7 @@
   "dependencies": {
     "babel-plugin-transform-es2015-modules-commonjs": "^6.5.2",
     "browserify": "^13.0.0",
+    "express": "^4.13.4",
     "q": "^1.4.1",
     "riot": "^2.3.12",
     "ws": "^0.8.0"

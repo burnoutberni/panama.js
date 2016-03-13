@@ -9,6 +9,8 @@ set -xe
 trap "kill -SIGTERM 0" SIGINT EXIT
 mkdir -p dist
 
+cd ./dist; ln -sf ../index.html ./index.html; cd -
+
 if [[ "${1}" == "watch" ]]; then
     babel -w ${SERVER_ARGS} &
     riot -w ${TAG_ARGS} &
