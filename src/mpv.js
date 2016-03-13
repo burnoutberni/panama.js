@@ -29,9 +29,11 @@ export default class MPV {
                   request_id: id
               });
         if (this.allowedCommands && this.allowedCommands.indexOf(args[0]) < 0) {
-           deferred.reject('command is not in allowedCommands.');
+            console.info('[mpv] forbidden command: ', args);
+            deferred.reject('command is not in allowedCommands.');
         }
         else {
+            console.info('[mpv] executing command: ', args);
             this.deferredRequests[id] = deferred;
             this.socket.write(data + '\r\n');
         }
@@ -64,7 +66,7 @@ export default class MPV {
             this.onEvent(payload.event);
         }
         else {
-            console.log('unhandled mpv event: ', payload);
+            console.log('[mpv] unhandled event: ', payload);
         }
     }
 }
