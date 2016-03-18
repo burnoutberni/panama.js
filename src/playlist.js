@@ -8,8 +8,14 @@ function youTubeDl(uri) {
         proc.stdout.on('data', data => stdout.push(...data.toString('utf-8').split('\n')));
         proc.stderr.on('data', data => stderr.push(...data.toString('utf-8').split('\n')));
         proc.on('close', code => {
-            if (!code) resolve([stdout, stderr]);
-            else reject(stderr);
+            const title = stdout[0].trim(),
+                  url = stdout[1].trim();
+            if (title === '' || url === '') {
+                reject('returned nothing.');
+            }
+
+            if (!code) resolve([title, url, stderr]);
+            else reject(`[youtube-dl] error: ${stderr}`);
         });
     });
 }
@@ -33,20 +39,9 @@ export default class Playlist {
         return new Promise((resolve, reject) => {
             youTubeDl(requestUrl).then(
                 result => {
-                    const [stdout, stderr] = result,
-                          title = stdout[0].trim(),
-                          url = stdout[1].trim();
-
-                    console.log('[youtube-dl] out: ', stdout);
-                    console.log('[youtube-dl] err: ', stderr);
-
-                    if (stderr.length) {
-                        this.mpv.command('show-text', stderr.join('\n'));
-                    }
-
-                    if (title === '' || url === '') {
-                        reject('[youtube-dl] returned nothing.');
-                        return;
+                    const [title, url, errors] = result;
+                    if (errors.length) {
+                        this.mpv.command('show-text', '[youtube-dl]: ' + errors.join('\n'));
                     }
 
                     this.mpv.command('show-text', `added ${title} (${url}) to playlist.`);
