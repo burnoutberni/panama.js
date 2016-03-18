@@ -1,0 +1,331 @@
+From 0d7557dc52251590c62262f2711112fafa81568b Mon Sep 17 00:00:00 2001
+From: burnoutberni <bernhard.hayden@gmail.com>
+Date: Tue, 22 Mar 2016 00:02:40 +0100
+Subject: [PATCH 1/4] wtf
+
+---
+ src/playlist.js | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/playlist.js b/src/playlist.js
+index 8c976a0..10ea5d8 100644
+--- a/src/playlist.js
++++ b/src/playlist.js
+@@ -44,15 +44,15 @@ export default class Playlist {
+                         this.mpv.command('show-text', stderr.join('\n'));
+                     }
+ 
+-                    if (title === '' || url === '') {
++                    if (url === '') {
+                         reject('[youtube-dl] returned nothing.');
+                         return;
+                     }
+ 
+                     this.mpv.command('show-text', `added ${title} (${url}) to playlist.`);
+ 
+-                    this.items[requestUrl] = {title};
+-                    this.save();
++                    //this.items[requestUrl] = {title};
++                    //this.save();
+ 
+                     console.info('[youtube-dl] loadfile: ', url);
+                     this.mpv.command('loadfile', url, 'append-play', `title="${title}"`)
+@@ -63,6 +63,4 @@ export default class Playlist {
+             );
+         });
+     }
+-
+-    }
+ }
+-- 
+2.7.2
+
+
+From 07f15b8cc6dab9be45adfc8aed2ad96c4c62af2f Mon Sep 17 00:00:00 2001
+From: burnoutberni <bernhard.hayden@gmail.com>
+Date: Tue, 22 Mar 2016 00:05:51 +0100
+Subject: [PATCH 2/4] changes to control bar
+
+---
+ src/server.js         | 12 +++++++-
+ src/tags/app.tag      | 76 +++++++++++++++++++++++++++++++++++++++------------
+ src/tags/controls.tag | 40 +++++++++++++++------------
+ 3 files changed, 91 insertions(+), 37 deletions(-)
+
+diff --git a/src/server.js b/src/server.js
+index 42b3682..79f5968 100644
+--- a/src/server.js
++++ b/src/server.js
+@@ -49,6 +49,8 @@ function setupClient(client) {
+     };
+     get_property('volume');
+     get_property('percent-pos');
++    get_property('time-pos');
++    get_property('time-remaining');
+     get_property('pause');
+     get_property('playlist', v => playlist.update(v)); // todo:: call playlist.list here.
+ }
+@@ -64,6 +66,12 @@ const handleClientEvent = client => data => {
+     case 'loadfile':
+         playlist.add(value);
+         break;
++    case 'playlist-prev':
++        mpv.command('playlist-prev');
++        break;
++    case 'playlist-next':
++        mpv.command('playlist-next');
++        break;
+     default:
+         mpv.command('show-text', key + ' ' + value);
+         mpv.command('set_property', key, value)
+@@ -75,7 +83,9 @@ const handleClientEvent = client => data => {
+ function setupWebSocketServer(webSocket, mpv, playlist) {
+     const broadcastPayload = p => webSocket.broadcast([p.name, p.data]);
+ 
+-    mpv.observe('percent-pos', throttle(broadcastPayload, 1000));
++    mpv.observe('percent-pos', throttle(broadcastPayload, 500));
++    mpv.observe('time-pos', throttle(broadcastPayload, 500));
++    mpv.observe('time-remaining', throttle(broadcastPayload, 500));
+     mpv.observe('playlist', broadcastPayload);
+     mpv.observe('volume', broadcastPayload);
+     mpv.observe('pause', broadcastPayload);
+diff --git a/src/tags/app.tag b/src/tags/app.tag
+index ff4e1d7..542f1e9 100644
+--- a/src/tags/app.tag
++++ b/src/tags/app.tag
+@@ -2,8 +2,9 @@ import riot from 'riot';
+ 
+ <app>
+     <error message="Could not connect to server: {this.socket.url}." if={this.socket.readyState != 1}></error>
+-    <controls volume={this.volume} position={this['percent-pos']}
++    <controls volume={this.volume} position={this['percent-pos']} timepos={this['time-pos']} timeremaining={this['time-remaining']}
+               pause={this.pause} send={this.send}></controls>
++    <inputbar send={this.send}></inputbar>
+     <playlist items={playlist} send="{this.send}"></playlist>
+     <p>
+         powered by <a href="https://git.phaer.org/panama">panama</a>, patches welcome.
+@@ -27,6 +28,13 @@ import riot from 'riot';
+      body {
+          background-color: #121212;
+      }
++     controls {
++       position:fixed;
++       left:0;
++       bottom:0;
++       width:100%;
++       background: #eee;
++     }
+      app {
+          display: block;
+          max-width: 30rem;
+@@ -38,30 +46,41 @@ import riot from 'riot';
+          font-family: monospace;
+      }
+ 
+-     form[name="controls"] {
++     .controls {
++         max-width: 60rem;
++         margin: 0 auto;
++         text-align: center;
+          display: flex;
+          flex-wrap: wrap;
+      }
+-     form[name="controls"] > * { margin-bottom: 0.5rem; }
+-     button[name="playing"], input[name="submit"] {
+-         min-width: 3rem;
++     .controls > * {
++       margin: auto 0;
++       padding: 0;
+      }
+-     button[name="playing"] { margin-right: 1rem; }
+-     input[name="submit"] { margin-left: 1rem; }
+-     input[name="add"] {
+-         flex-grow: 2;
++     button {
++       font-weight: bold;
++       min-width: 2rem;
++       background: 0;
++       border: 0;
++       line-height: 200%;
+      }
+-     .volume, .position {
+-         width: 100%;
+-         display: flex;
++     .controls span {
++       min-width: 2rem;
++     }
++     input[name="position"] { flex: 5 5; }
++     input[name="volume"] { flex: 1 1; }
+ 
++     form[name="inputbar"] {
++         display: flex;
++         flex-wrap: wrap;
+      }
+-     .volume label, .position label {
+-         width: 15%;
+-         line-height: 200%;
++     form[name="inputbar"] > * { margin-bottom: 0.5rem; }
++     input[name="submit"] {
++         min-width: 3rem;
++         margin-left: 1rem;
+      }
+-     .volume input, .position input {
+-         width: 84%;
++     input[name="add"] {
++         flex-grow: 2;
+      }
+ 
+      playlist ul {
+@@ -70,10 +89,31 @@ import riot from 'riot';
+          list-style-type: none;
+      }
+      playlist ul li {
+-         padding: 1rem 2rem;
++         padding: 0.5rem 2rem;
+          background-color: white;
+          border-bottom: 0.2rem solid #eee;
+          word-wrap: break-word;
+      }
++     playlist ul li span {
++         cursor: default;
++     }
++
++     .current {
++       background-color: #eee;
++     }
++     .current::before {
++       content: "▶ ";
++       cursor: default;
++     }
++
++    input[type=range]::-moz-range-track {
++        height: 5px;
++        background: #ddd;
++        border: none;
++    }
++
++    input[type=range]:focus::-moz-range-track {
++        background: #ccc;
++    }
+     </style>
+ </app>
+diff --git a/src/tags/controls.tag b/src/tags/controls.tag
+index 9d8c416..7dcc1d0 100644
+--- a/src/tags/controls.tag
++++ b/src/tags/controls.tag
+@@ -1,32 +1,36 @@
+ <controls>
+-   <form name="controls">
+-       <button name="playing">||</button>
+-       <input name="add">
+-       <input name="submit" type="submit" value="add">
+-       <div class="volume">
+-           <label for="volume">volume</label>
+-           <input name="volume" type="range" min="0" max="100" value={opts.volume} />
+-       </div>
+-       <div class="position">
+-           <label for="position">position</label>
+-           <input name="position" type="range" min="0" max="100" value={opts.position} />
+-       </div>
+-   </form>
++   <div class="controls">
++       <button name="playlistprev">&lt;&lt;</button>
++       <button name="playing">|></button>
++       <button name="playlistnext">&gt;&gt;</button>
++       <span name="timepos"></span>
++       <input name="position" type="range" min="0" max="100" value={opts.position} />
++       <span name="timeremaining"></span>
++       <span>vol</span>
++       <input name="volume" type="range" min="0" max="100" value={opts.volume} />
++   </div>
+    <script>
+ 
+-     this.controls.onsubmit = event => {
++     /*this.controls.onsubmit = event => {
+          opts.send('loadfile', this.add.value);
+          event.preventDefault();
+-     }
++     }*/
+ 
+      const changeHandler = property => event => opts.send(property, parseFloat(event.target.value));
+      this.position.onchange = this.position.oninput = changeHandler('percent-pos');
+      this.volume.onchange = this.volume.oninput = changeHandler('volume');
+-     this.playing.onclick = event => opts.send('pause', !opts.pause);
++     this.playing.onclick = event => {
++       opts.send('pause', !opts.pause);
++       event.preventDefault();
++     }
++     this.playlistprev.onclick = event => opts.send('playlist-prev');
++     this.playlistnext.onclick = event => opts.send('playlist-next');
+ 
+      this.on('update', () => {
+-         if (opts.pause) { this.playing.innerHTML = "||"; }
+-         else { this.playing.innerHTML = "|>"; }
++         if (opts.pause) { this.playing.innerHTML = "|>"; }
++         else { this.playing.innerHTML = "||"; }
++         this.timepos.innerHTML = parseInt(opts.timepos / 60) + (parseInt(opts.timepos) % 60 < 10 ? ":0" : ":" ) + parseInt(opts.timepos) % 60;
++         this.timeremaining.innerHTML = "-" + parseInt(opts.timeremaining / 60) + (parseInt(opts.timeremaining) % 60 < 10 ? ":0" : ":" ) + parseInt(opts.timeremaining) % 60;
+      });
+ 
+    </script>
+-- 
+2.7.2
+
+
+From 865147e570a99199ce04410922500489ab6df761 Mon Sep 17 00:00:00 2001
+From: burnoutberni <bernhard.hayden@gmail.com>
+Date: Tue, 22 Mar 2016 00:06:39 +0100
+Subject: [PATCH 3/4] added current item visuals to playlist
+
+---
+ src/tags/playlist.tag | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/tags/playlist.tag b/src/tags/playlist.tag
+index b75b101..30aa6e0 100644
+--- a/src/tags/playlist.tag
++++ b/src/tags/playlist.tag
+@@ -1,6 +1,6 @@
+ <playlist>
+     <ul>
+-        <li each={opts.items}>
++        <li each={opts.items}  class="{current ? 'current' : ''}">
+             <span onclick={parent.playItem}>{title ? title : filename}</span>
+             <a if={requestUrl} href="{requestUrl}">source</a>
+         </li>
+-- 
+2.7.2
+
+
+From 8523df1ffbbf4c8c233d090a969051f25d22ac6a Mon Sep 17 00:00:00 2001
+From: burnoutberni <bernhard.hayden@gmail.com>
+Date: Tue, 22 Mar 2016 00:07:35 +0100
+Subject: [PATCH 4/4] split inputbar from controls
+
+---
+ src/tags/inputbar.tag | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+ create mode 100644 src/tags/inputbar.tag
+
+diff --git a/src/tags/inputbar.tag b/src/tags/inputbar.tag
+new file mode 100644
+index 0000000..2bf98d8
+--- /dev/null
++++ b/src/tags/inputbar.tag
+@@ -0,0 +1,13 @@
++<inputbar>
++   <form name="inputbar">
++     <input name="add">
++     <input name="submit" type="submit" value="add">
++   </form>
++   <script>
++
++     this.inputbar.onsubmit = event => {
++         opts.send('loadfile', this.add.value);
++         event.preventDefault();
++     }
++   </script>
++</inputbar>
+-- 
+2.7.2
+
