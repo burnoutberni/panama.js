@@ -1,6 +1,6 @@
 <playlist>
     <ul>
-        <li each={opts.items}>
+        <li each={opts.items}  class="{current ? 'current' : ''}">
             <span onclick={parent.playItem}>{title ? title : filename}</span>
             <a if={requestUrl} href="{requestUrl}">source</a>
         </li>
