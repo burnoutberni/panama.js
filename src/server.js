@@ -49,6 +49,8 @@ function setupClient(client) {
     };
     get_property('volume');
     get_property('percent-pos');
+    get_property('time-pos');
+    get_property('time-remaining');
     get_property('pause');
     get_property('playlist', v => playlist.update(v)); // todo:: call playlist.list here.
 }
@@ -64,6 +66,12 @@ const handleClientEvent = client => data => {
     case 'loadfile':
         playlist.add(value);
         break;
+    case 'playlist-prev':
+        mpv.command('playlist-prev');
+        break;
+    case 'playlist-next':
+        mpv.command('playlist-next');
+        break;
     default:
         mpv.command('show-text', key + ' ' + value);
         mpv.command('set_property', key, value)
@@ -75,7 +83,9 @@ const handleClientEvent = client => data => {
 function setupWebSocketServer(webSocket, mpv, playlist) {
     const broadcastPayload = p => webSocket.broadcast([p.name, p.data]);
 
-    mpv.observe('percent-pos', throttle(broadcastPayload, 1000));
+    mpv.observe('percent-pos', throttle(broadcastPayload, 500));
+    mpv.observe('time-pos', throttle(broadcastPayload, 500));
+    mpv.observe('time-remaining', throttle(broadcastPayload, 500));
     mpv.observe('playlist', broadcastPayload);
     mpv.observe('volume', broadcastPayload);
     mpv.observe('pause', broadcastPayload);
