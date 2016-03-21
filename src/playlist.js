@@ -44,15 +44,15 @@ export default class Playlist {
                         this.mpv.command('show-text', stderr.join('\n'));
                     }
 
-                    if (title === '' || url === '') {
+                    if (url === '') {
                         reject('[youtube-dl] returned nothing.');
                         return;
                     }
 
                     this.mpv.command('show-text', `added ${title} (${url}) to playlist.`);
 
-                    this.items[requestUrl] = {title};
-                    this.save();
+                    //this.items[requestUrl] = {title};
+                    //this.save();
 
                     console.info('[youtube-dl] loadfile: ', url);
                     this.mpv.command('loadfile', url, 'append-play', `title="${title}"`)
@@ -62,7 +62,5 @@ export default class Playlist {
                 error => reject(`[youtube-dl] error: ${error}`)
             );
         });
-    }
-
     }
 }
