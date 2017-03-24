@@ -8,6 +8,7 @@ function youTubeDl(uri) {
         proc.stdout.on('data', data => stdout.push(...data.toString('utf-8').split('\n')));
         proc.stderr.on('data', data => stderr.push(...data.toString('utf-8').split('\n')));
         proc.on('close', code => {
+            stdout = stdout.filter(element => element !== '')
             const title = stdout[0].trim(),
                   url = stdout[1].trim();
             if (title === '' || url === '') {
