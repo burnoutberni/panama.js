@@ -27,10 +27,15 @@
      this.playlistnext.onclick = event => opts.send('playlist-next');
 
      this.on('update', () => {
-         if (opts.pause) { this.playing.innerHTML = "|>"; }
+         if (opts.pause) { this.playing.innerHTML = "▶"; }
          else { this.playing.innerHTML = "||"; }
-         this.timepos.innerHTML = parseInt(opts.timepos / 60) + (parseInt(opts.timepos) % 60 < 10 ? ":0" : ":" ) + parseInt(opts.timepos) % 60;
-         this.timeremaining.innerHTML = "-" + parseInt(opts.timeremaining / 60) + (parseInt(opts.timeremaining) % 60 < 10 ? ":0" : ":" ) + parseInt(opts.timeremaining) % 60;
+         const duration = Math.floor(opts.duration) * 1000
+         const position = Math.floor(opts.duration * opts.position / 100) * 1000
+
+         if (duration && position) {
+           this.timepos.innerHTML = new Date(position).toISOString().substr(11, 8);
+           this.timeremaining.innerHTML = '-' + new Date(duration - position).toISOString().substr(11, 8);
+         }
      });
 
    </script>

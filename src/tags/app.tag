@@ -2,7 +2,7 @@ import riot from 'riot';
 
 <app>
     <error message="Could not connect to server: {this.socket.url}." if={this.socket.readyState != 1}></error>
-    <controls volume={this.volume} position={this['percent-pos']} timepos={this['time-pos']} timeremaining={this['time-remaining']}
+    <controls volume={this.volume} position={this['percent-pos']} duration={this.duration}
               pause={this.pause} send={this.send}></controls>
     <inputbar send={this.send}></inputbar>
     <playlist items={playlist} send="{this.send}"></playlist>

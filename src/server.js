@@ -49,8 +49,7 @@ function setupClient(client) {
     };
     get_property('volume');
     get_property('percent-pos');
-    get_property('time-pos');
-    get_property('time-remaining');
+    get_property('duration');
     get_property('pause');
     get_property('playlist', v => playlist.update(v)); // todo:: call playlist.list here.
 }
@@ -84,8 +83,7 @@ function setupWebSocketServer(webSocket, mpv, playlist) {
     const broadcastPayload = p => webSocket.broadcast([p.name, p.data]);
 
     mpv.observe('percent-pos', throttle(broadcastPayload, 500));
-    mpv.observe('time-pos', throttle(broadcastPayload, 500));
-    mpv.observe('time-remaining', throttle(broadcastPayload, 500));
+    mpv.observe('duration', throttle(broadcastPayload, 500));
     mpv.observe('playlist', broadcastPayload);
     mpv.observe('volume', broadcastPayload);
     mpv.observe('pause', broadcastPayload);
