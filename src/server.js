@@ -71,6 +71,9 @@ const handleClientEvent = client => data => {
     case 'playlist-next':
         mpv.command('playlist-next');
         break;
+    case 'playlist-remove':
+        mpv.command('playlist-remove', value);
+        break;
     default:
         mpv.command('show-text', key + ' ' + value);
         mpv.command('set_property', key, value)
