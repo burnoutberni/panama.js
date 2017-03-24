@@ -54,7 +54,7 @@ export default class Playlist {
                         this.mpv.command('show-text', '[youtube-dl]: ' + errors.join('\n'));
                     }
 
-                    this.mpv.command('show-text', `added ${title} (${url}) to playlist.`);
+                    this.mpv.command('show-text', `added ${title ? title : url} to playlist.`);
 
                     //this.items[requestUrl] = {title};
                     //this.save();
