@@ -8,11 +8,17 @@ function youTubeDl(uri) {
         proc.stdout.on('data', data => stdout.push(...data.toString('utf-8').split('\n')));
         proc.stderr.on('data', data => stderr.push(...data.toString('utf-8').split('\n')));
         proc.on('close', code => {
-            stdout = stdout.filter(element => element !== '')
-            const title = stdout[0].trim(),
-                  url = stdout[1].trim();
+            const title = stdout[0].trim();
+            let url = stdout[1].trim();
             if (title === '' || url === '') {
                 reject('returned nothing.');
+            } else if (title !== '') {
+                if (url.indexOf('?') !== -1) {
+                  const parts = url.split('?');
+                  url = parts[0] + `?panama_title=${encodeURIComponent(title)}&` + parts[1];
+                } else {
+                  url += `?panama_title=${encodeURIComponent(title)}`;
+                }
             }
 
             if (!code) resolve([title, url, stderr]);
