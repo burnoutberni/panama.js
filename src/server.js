@@ -103,7 +103,7 @@ function setupHttpServer(http, mpv, playlist) {
     http.use(express.static('dist'));
 
     http.get('/volume/:volume', (req, res) => {
-        res.write('volume', req.params.volume, '\n');
+        res.write(`volume ${req.params.volume} \n`);
         mpv.command('set_property', 'volume', req.params.volume)
             .then(v => res.send(v),
                   e => res.send(e));
