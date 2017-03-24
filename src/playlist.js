@@ -44,6 +44,9 @@ export default class Playlist {
 
     add(requestUrl) {
         return new Promise((resolve, reject) => {
+            if (requestUrl === '') {
+                return reject('empty requestURL')
+            }
             youTubeDl(requestUrl).then(
                 result => {
                     const [title, url, errors] = result;
