@@ -92,16 +92,16 @@ import riot from 'riot';
          padding: 0.5rem 2rem;
          background-color: white;
          border-bottom: 0.2rem solid #eee;
-         word-wrap: break-word;
-     }
-     playlist ul li span {
-         cursor: default;
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         cursor: pointer;
      }
 
      .current {
        background-color: #eee;
      }
-     .current::before {
+     .current .title::before {
        content: "▶ ";
        cursor: default;
      }
