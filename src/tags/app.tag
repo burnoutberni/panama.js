@@ -28,13 +28,6 @@ import riot from 'riot';
      body {
          background-color: #121212;
      }
-     controls {
-       position:fixed;
-       left:0;
-       bottom:0;
-       width:100%;
-       background: #eee;
-     }
      app {
          display: block;
          max-width: 30rem;
@@ -42,22 +35,24 @@ import riot from 'riot';
          padding: 2rem;
          background-color: #eee;
          border-radius: 0.5rem;
+         overflow: hidden;
 
          font-family: monospace;
      }
 
      .controls {
-         max-width: 60rem;
-         margin: 0 auto;
          text-align: center;
          display: flex;
          flex-wrap: wrap;
      }
      .controls > * {
-       margin: auto 0;
-       padding: 0;
+        flex: 1;
+        display: flex;
+        align-items: center;
      }
-     button {
+     .controls button {
+       flex: 1 1 10%;
+       cursor: pointer;
        font-weight: bold;
        min-width: 2rem;
        background: 0;
@@ -67,8 +62,8 @@ import riot from 'riot';
      .controls span {
        min-width: 2rem;
      }
-     input[name="position"] { flex: 5 5; }
-     input[name="volume"] { flex: 1 1; }
+     input[name="position"] { flex: 1; }
+     input[name="volume"] { flex: 1 1 20%; }
 
      form[name="inputbar"] {
          display: flex;

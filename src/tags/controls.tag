@@ -1,13 +1,17 @@
 <controls>
    <div class="controls">
-       <button name="playlistprev">&lt;&lt;</button>
-       <button name="playing">|></button>
-       <button name="playlistnext">&gt;&gt;</button>
-       <span name="timepos"></span>
-       <input name="position" type="range" min="0" max="100" value={opts.position} />
-       <span name="timeremaining"></span>
-       <span>vol</span>
-       <input name="volume" type="range" min="0" max="100" value={opts.volume} />
+       <div>
+           <button name="playlistprev">&lt;&lt;</button>
+           <button name="playing">|></button>
+           <button name="playlistnext">&gt;&gt;</button>
+           <span>🔊</span>
+           <input name="volume" type="range" min="0" max="100" value={opts.volume} />
+       </div>
+       <div>
+           <span name="timepos"></span>
+           <input name="position" type="range" min="0" max="100" value={opts.position} />
+           <span name="timeremaining"></span>
+       </div>
    </div>
    <script>
 
