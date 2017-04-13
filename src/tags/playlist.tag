@@ -2,8 +2,8 @@
     <ul>
         <li each={opts.items}  class="{current ? 'current' : ''}">
             <span onclick={parent.removeItem}>×</span>
-            <span class="title" onclick={parent.playItem}>{filename.indexOf('panama_title') !== -1 ? decodeURIComponent(filename.split('panama_title=')[1].split('&')[0]) : filename}</span>
-            <a if={requestUrl} href="{requestUrl}">source</a>
+            <span class="title" onclick={parent.playItem}>{filename}</span>
+            <a href="{filename}" target="_blank">🔗</a>
         </li>
     </ul>
     <script>

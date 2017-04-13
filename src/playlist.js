@@ -47,6 +47,14 @@ export default class Playlist {
             if (requestUrl === '') {
                 return reject('empty requestURL')
             }
+            let requestUrlWithProtocol = requestUrl;
+            if (requestUrlWithProtocol.indexOf('://') === -1) {
+              requestUrlWithProtocol = 'http://' + requestUrlWithProtocol;
+            }
+            this.mpv.command('loadfile', requestUrlWithProtocol, 'append-play')
+                .then(v => resolve(v),
+                      e => reject(e));
+            /*
             youTubeDl(requestUrl).then(
                 result => {
                     const [title, url, errors] = result;
@@ -65,7 +73,7 @@ export default class Playlist {
                               e => reject(e));
                 },
                 error => reject(`[youtube-dl] error: ${error}`)
-            );
+            );*/
         });
     }
 }
